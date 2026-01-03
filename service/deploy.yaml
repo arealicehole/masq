@@ -1,0 +1,71 @@
+# ============================================
+# Akash Network Deployment - Phase 1 (CPU)
+# Image Processing Service
+# ============================================
+# Estimated cost: $15-25/month
+# ============================================
+
+---
+version: "2.0"
+
+services:
+  img-proc:
+    image: yourusername/img-proc-service:latest
+    env:
+      # Required API Keys (replace with your actual keys)
+      - RUNWARE_API_KEY=your_runware_key_here
+      - KIE_API_KEY=your_kie_key_here
+
+      # Server settings
+      - LOG_LEVEL=INFO
+      - MAX_CONCURRENT_JOBS=4
+      - UVICORN_WORKERS=2
+
+      # Timeouts
+      - REQUEST_TIMEOUT=60
+      - RUNWARE_TIMEOUT=120
+      - KIE_TIMEOUT=120
+
+      # Storage
+      - TEMP_DIR=/tmp/img-proc
+      - CLEANUP_AFTER_SECONDS=300
+
+    expose:
+      - port: 8000
+        as: 80
+        to:
+          - global: true
+        http_options:
+          max_body_size: 52428800  # 50MB max upload
+          read_timeout: 120000     # 2 min read timeout
+          send_timeout: 120000     # 2 min send timeout
+
+profiles:
+  compute:
+    img-proc:
+      resources:
+        cpu:
+          units: 2.0      # 2 vCPUs
+        memory:
+          size: 4Gi       # 4GB RAM
+        storage:
+          size: 5Gi       # 5GB storage
+
+  placement:
+    akash:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63
+          - akash18qa2a2ltfyvkyj0ggj3hkvuj6twzyumuaru9s4
+      pricing:
+        img-proc:
+          denom: uakt
+          amount: 1000    # ~$15-25/month
+
+deployment:
+  img-proc:
+    akash:
+      profile: img-proc
+      count: 1

@@ -1,0 +1,85 @@
+# ============================================
+# Akash Network Deployment - Phase 2 (GPU)
+# Image Processing Service with BEN-v2
+# ============================================
+# Estimated cost: $96-288/month (RTX 4090)
+# ============================================
+
+---
+version: "2.0"
+
+services:
+  img-proc-gpu:
+    image: yourusername/img-proc-service-gpu:latest
+    env:
+      # Required API Keys
+      - RUNWARE_API_KEY=your_runware_key_here
+      - KIE_API_KEY=your_kie_key_here
+
+      # GPU Mode
+      - COMPUTE_BACKEND=gpu
+      - USE_GPU=true
+      - BEN2_MODEL_PATH=/opt/models/ben2/BEN2_Base.pth
+
+      # Server settings
+      - LOG_LEVEL=INFO
+      - MAX_CONCURRENT_JOBS=2  # Lower for GPU memory management
+      - UVICORN_WORKERS=1      # Single worker for GPU
+
+      # Timeouts
+      - REQUEST_TIMEOUT=120
+      - RUNWARE_TIMEOUT=120
+      - KIE_TIMEOUT=120
+
+      # Storage
+      - TEMP_DIR=/tmp/img-proc
+      - CLEANUP_AFTER_SECONDS=300
+
+    expose:
+      - port: 8000
+        as: 80
+        to:
+          - global: true
+        http_options:
+          max_body_size: 104857600  # 100MB for larger images
+          read_timeout: 180000      # 3 min read timeout
+          send_timeout: 180000      # 3 min send timeout
+
+profiles:
+  compute:
+    img-proc-gpu:
+      resources:
+        cpu:
+          units: 4.0        # 4 vCPUs for GPU coordination
+        memory:
+          size: 16Gi        # 16GB RAM for GPU transfers
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: rtx4090
+                  ram: 24Gi
+                - model: rtx3090
+                  ram: 24Gi
+        storage:
+          size: 20Gi        # Extra for model weights
+
+  placement:
+    akash:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63
+          - akash18qa2a2ltfyvkyj0ggj3hkvuj6twzyumuaru9s4
+      pricing:
+        img-proc-gpu:
+          denom: uakt
+          amount: 5000      # Higher bid for GPU resources
+
+deployment:
+  img-proc-gpu:
+    akash:
+      profile: img-proc-gpu
+      count: 1

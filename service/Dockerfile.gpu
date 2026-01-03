@@ -1,0 +1,119 @@
+# ============================================
+# Image Processing Service - Phase 2 (GPU)
+# For BEN-v2 local inference
+# Requires: RTX 3090/4090 (24GB VRAM)
+# ============================================
+
+# ============================================
+# STAGE 1: Builder
+# ============================================
+FROM nvidia/cuda:12.1-devel-ubuntu22.04 AS builder
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python 3.12 and build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3.12-dev \
+    python3-pip \
+    gcc \
+    g++ \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    libmagic1 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python3.12 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install PyTorch with CUDA support
+RUN pip install --no-cache-dir \
+    torch==2.1.2+cu121 \
+    torchvision==0.16.2+cu121 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+# Copy and install requirements
+COPY requirements-gpu.txt .
+RUN pip install --no-cache-dir -r requirements-gpu.txt
+
+# Pre-download models
+RUN python -c "from rembg import new_session; new_session('birefnet-general'); new_session('isnet-general-use')"
+
+# Download BEN-v2 model weights
+RUN pip install huggingface_hub && \
+    python -c "from huggingface_hub import hf_hub_download; hf_hub_download('PramaLLC/BEN2', 'BEN2_Base.pth', local_dir='/opt/models/ben2')"
+
+# ============================================
+# STAGE 2: Runtime
+# ============================================
+FROM nvidia/cuda:12.1-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python runtime and libraries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    libjpeg62 \
+    zlib1g \
+    libpng16-16 \
+    libfreetype6 \
+    libmagic1 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy pre-downloaded models
+COPY --from=builder /root/.u2net /root/.u2net
+COPY --from=builder /opt/models /opt/models
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser
+
+# Set working directory
+WORKDIR /app
+COPY --chown=appuser:appuser . /app
+
+# Create temp directory
+RUN mkdir -p /tmp/img-proc && chown appuser:appuser /tmp/img-proc
+
+# Switch to non-root user
+USER appuser
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    TEMP_DIR=/tmp/img-proc \
+    COMPUTE_BACKEND=gpu \
+    USE_GPU=true \
+    BEN2_MODEL_PATH=/opt/models/ben2/BEN2_Base.pth \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()"
+
+# Run FastAPI
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

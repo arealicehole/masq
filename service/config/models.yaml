@@ -1,0 +1,125 @@
+# ============================================
+# Background Removal Models Configuration
+# 5-Model Shotgun Setup
+# ============================================
+
+background_removal:
+  # ----- API Models -----
+
+  runware_rmbg2:
+    name: "Runware RMBG 2.0"
+    provider: runware
+    model_id: "runware:110@1"
+    enabled: true
+    cost_per_image: 0.0006
+    timeout: 30
+    priority: 1
+    notes: "Overall best performer, handles most images well"
+
+  runware_birefnet_portrait:
+    name: "Runware BiRefNet Portrait"
+    provider: runware
+    model_id: "runware:112@10"
+    enabled: true
+    cost_per_image: 0.0006
+    timeout: 30
+    priority: 2
+    notes: "Good for portrait-style images"
+
+  kie_recraft:
+    name: "Kie.ai Recraft BG"
+    provider: kie
+    model_id: "recraft/remove-background"
+    enabled: true
+    cost_per_image: 0.005
+    timeout: 60
+    priority: 3
+    notes: "Good on tough/complex images"
+
+  # ----- Local Models (FREE) -----
+
+  local_birefnet:
+    name: "Local BiRefNet General"
+    provider: local
+    model_id: "birefnet-general"
+    enabled: true
+    cost_per_image: 0.0
+    timeout: 30
+    priority: 4
+    notes: "Best on illustrations like Billionaire Lifestyle"
+
+  local_isnet:
+    name: "Local ISNet"
+    provider: local
+    model_id: "isnet-general-use"
+    enabled: true
+    cost_per_image: 0.0
+    timeout: 20
+    priority: 5
+    notes: "Good on objects like robots"
+
+# ============================================
+# Upscaling Configuration
+# ============================================
+
+upscaling:
+  lanczos:
+    name: "Lanczos 4x"
+    provider: local
+    enabled: true
+    default_scale: 4
+    max_scale: 4
+    preserve_alpha: true
+    cost_per_image: 0.0
+    notes: "Local PIL/Pillow-SIMD, no size limits, preserves transparency"
+
+# ============================================
+# Provider Configuration
+# ============================================
+
+providers:
+  runware:
+    base_url: "wss://api.runware.ai/v1"
+    connection_type: websocket
+    auth_type: api_key
+    env_key: RUNWARE_API_KEY
+    max_retries: 3
+    retry_delay: 2.0
+
+  kie:
+    base_url: "https://api.kie.ai/api/v1"
+    connection_type: rest
+    auth_type: bearer
+    env_key: KIE_API_KEY
+    upload_endpoint: "https://kieai.redpandaai.co/api/file-stream-upload"
+    poll_interval: 2
+    max_poll_attempts: 60
+
+  local:
+    connection_type: local
+    model_cache_dir: "~/.u2net"
+
+# ============================================
+# Shotgun Configuration
+# ============================================
+
+shotgun:
+  # Run all models in parallel
+  parallel: true
+
+  # Timeout for entire shotgun operation
+  total_timeout: 90
+
+  # Continue even if some models fail
+  allow_partial_results: true
+
+  # Minimum successful results required
+  min_successful: 1
+
+  # Default models to run (can be overridden per request)
+  default_models:
+    - runware_rmbg2
+    - runware_birefnet_portrait
+    - kie_recraft
+    - local_birefnet
+    - local_isnet

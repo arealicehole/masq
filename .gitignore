@@ -1,0 +1,40 @@
+# Environment
+.env
+service/.env
+
+# Output directories
+output_local/
+output_api/
+output_benchmark/
+
+# Test images
+input/
+
+# Models (large files)
+models/*.pb
+models/*.onnx
+models/*.pth
+
+# Results
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Research/development artifacts
+r/
+benchmark_*.py
+test_*.py
+research_plan.json
+IMPLEMENTATION_PLAN.md
+
+# Serena
+.serena/

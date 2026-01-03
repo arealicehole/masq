@@ -1,0 +1,66 @@
+# Environment and secrets
+.env
+*.env
+.env.*
+!.env.example
+config.local.yaml
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Build
+build/
+dist/
+*.whl
+
+# Logs
+logs/
+*.log
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models (downloaded at runtime)
+*.pth
+*.onnx
+*.pt
+.u2net/
+
+# Docker
+.docker/
+
+# Output directories
+output/
+output_api/
+output_local/
