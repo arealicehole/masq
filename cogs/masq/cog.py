@@ -228,23 +228,31 @@ class MasqCog(commands.Cog):
 
     # ==================== /upscale Command ====================
 
-    @app_commands.command(name="upscale", description="Upscale an image (Lanczos, preserves transparency)")
+    @app_commands.command(name="upscale", description="Upscale an image (preserves transparency)")
     @app_commands.describe(
         image="Image to upscale (PNG, JPG, WebP)",
-        scale="Scale factor (2x, 4x, 8x). Default: 4x"
+        scale="Scale factor (2x, 4x, 8x). Default: 4x",
+        mode="fast (instant) or premium (AI, 1-2 min but better quality)"
     )
-    @app_commands.choices(scale=[
-        app_commands.Choice(name="2x", value=2),
-        app_commands.Choice(name="4x (Default)", value=4),
-        app_commands.Choice(name="8x", value=8),
-    ])
+    @app_commands.choices(
+        scale=[
+            app_commands.Choice(name="2x", value=2),
+            app_commands.Choice(name="4x (Default)", value=4),
+            app_commands.Choice(name="8x", value=8),
+        ],
+        mode=[
+            app_commands.Choice(name="fast (instant)", value="fast"),
+            app_commands.Choice(name="premium (AI, ~1-2 min)", value="premium"),
+        ]
+    )
     async def upscale_command(
         self,
         interaction: discord.Interaction,
         image: discord.Attachment,
-        scale: int = 4
+        scale: int = 4,
+        mode: str = "fast"
     ):
-        """Upscale an image using Lanczos resampling."""
+        """Upscale an image. Fast uses Lanczos, Premium uses Real-ESRGAN AI."""
 
         # Validate attachment
         if not image.content_type or not image.content_type.startswith("image/"):
@@ -266,60 +274,130 @@ class MasqCog(commands.Cog):
 
         try:
             image_bytes = await image.read()
-            result = await self.masq.upscale(image_bytes, scale=scale)
 
-            if not result.success:
+            if mode == "premium":
+                # Premium mode - Real-ESRGAN (slower but reconstructs detail)
+                from .realesrgan import upscale_hd
+
+                # Send a heads-up message
                 await interaction.followup.send(
-                    f"Upscaling failed: {result.error}",
-                    ephemeral=True
+                    "🎨 **Premium upscale started** - This uses AI to reconstruct detail "
+                    "and may take 1-2 minutes. Please wait...",
+                    ephemeral=False
                 )
-                return
 
-            # Check output size (Discord limit 25MB)
-            if len(result.image_bytes) > 25 * 1024 * 1024:
-                await interaction.followup.send(
-                    f"Result too large to upload ({len(result.image_bytes) / 1024 / 1024:.1f}MB). "
-                    f"Try a smaller scale factor.",
-                    ephemeral=True
+                result = await upscale_hd(image_bytes, scale=scale, model="default")
+
+                if not result.success:
+                    await interaction.followup.send(
+                        f"Upscaling failed: {result.error}",
+                        ephemeral=True
+                    )
+                    return
+
+                # Check output size
+                if len(result.image_bytes) > 25 * 1024 * 1024:
+                    await interaction.followup.send(
+                        f"Result too large to upload ({len(result.image_bytes) / 1024 / 1024:.1f}MB). "
+                        f"Try a smaller scale factor.",
+                        ephemeral=True
+                    )
+                    return
+
+                file = discord.File(
+                    io.BytesIO(result.image_bytes),
+                    filename=f"upscaled_premium_{scale}x.png"
                 )
-                return
 
-            file = discord.File(
-                io.BytesIO(result.image_bytes),
-                filename=f"upscaled_{scale}x.png"
-            )
-
-            embed = discord.Embed(
-                title=f"Upscaled {scale}x",
-                color=0x7B68EE
-            )
-            embed.add_field(
-                name="Original",
-                value=f"{result.original_size[0]}x{result.original_size[1]}",
-                inline=True
-            )
-            embed.add_field(
-                name="Upscaled",
-                value=f"{result.upscaled_size[0]}x{result.upscaled_size[1]}",
-                inline=True
-            )
-            embed.add_field(
-                name="Time",
-                value=f"{result.processing_time_ms:.0f}ms",
-                inline=True
-            )
-            if result.has_alpha:
+                embed = discord.Embed(
+                    title=f"Premium Upscaled {scale}x",
+                    description="AI-enhanced with Real-ESRGAN",
+                    color=0xFFD700  # Gold for premium
+                )
                 embed.add_field(
-                    name="Transparency",
-                    value="Preserved",
+                    name="Original",
+                    value=f"{result.original_size[0]}x{result.original_size[1]}",
                     inline=True
                 )
-            embed.set_footer(text="Masq by Tricon Digital | Lanczos Resampling")
+                embed.add_field(
+                    name="Upscaled",
+                    value=f"{result.upscaled_size[0]}x{result.upscaled_size[1]}",
+                    inline=True
+                )
+                embed.add_field(
+                    name="Time",
+                    value=f"{result.processing_time_ms/1000:.1f}s",
+                    inline=True
+                )
+                if result.has_alpha:
+                    embed.add_field(
+                        name="Transparency",
+                        value="Preserved",
+                        inline=True
+                    )
+                embed.set_footer(text="Masq by Tricon Digital | Real-ESRGAN AI")
 
-            await interaction.followup.send(embed=embed, file=file)
+                await interaction.followup.send(embed=embed, file=file)
 
-            # Log usage
-            await self._log_usage(interaction.user, "upscale", f"{scale}x", 0.0)
+                # Log usage
+                await self._log_usage(interaction.user, "upscale_premium", f"{scale}x", 0.0)
+
+            else:
+                # Fast mode - Lanczos (instant)
+                result = await self.masq.upscale(image_bytes, scale=scale)
+
+                if not result.success:
+                    await interaction.followup.send(
+                        f"Upscaling failed: {result.error}",
+                        ephemeral=True
+                    )
+                    return
+
+                # Check output size (Discord limit 25MB)
+                if len(result.image_bytes) > 25 * 1024 * 1024:
+                    await interaction.followup.send(
+                        f"Result too large to upload ({len(result.image_bytes) / 1024 / 1024:.1f}MB). "
+                        f"Try a smaller scale factor.",
+                        ephemeral=True
+                    )
+                    return
+
+                file = discord.File(
+                    io.BytesIO(result.image_bytes),
+                    filename=f"upscaled_{scale}x.png"
+                )
+
+                embed = discord.Embed(
+                    title=f"Upscaled {scale}x",
+                    color=0x7B68EE
+                )
+                embed.add_field(
+                    name="Original",
+                    value=f"{result.original_size[0]}x{result.original_size[1]}",
+                    inline=True
+                )
+                embed.add_field(
+                    name="Upscaled",
+                    value=f"{result.upscaled_size[0]}x{result.upscaled_size[1]}",
+                    inline=True
+                )
+                embed.add_field(
+                    name="Time",
+                    value=f"{result.processing_time_ms:.0f}ms",
+                    inline=True
+                )
+                if result.has_alpha:
+                    embed.add_field(
+                        name="Transparency",
+                        value="Preserved",
+                        inline=True
+                    )
+                embed.set_footer(text="Masq by Tricon Digital | Lanczos Resampling")
+
+                await interaction.followup.send(embed=embed, file=file)
+
+                # Log usage
+                await self._log_usage(interaction.user, "upscale", f"{scale}x", 0.0)
 
         except Exception as e:
             logger.exception(f"Upscale error: {e}")
