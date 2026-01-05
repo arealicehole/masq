@@ -245,37 +245,73 @@ async def cmd_upscale(args):
         print_error(f"File not found: {input_path}")
         return 1
 
-    masq = Masq()
     image_bytes = input_path.read_bytes()
 
     scene_upscale()
     print_status(f"De target: {C.DIM}{input_path.name}{C.RESET} ({len(image_bytes) / 1024:.1f} KB)")
     print_status(f"De power: {C.GOLD}{args.scale}x{C.RESET}")
-    print_info("Chargin' up...")
 
-    result = await masq.upscale(
-        image_bytes,
-        scale=args.scale,
-        preserve_alpha=not args.no_alpha
-    )
+    if args.hd:
+        # HD Mode - Real-ESRGAN (slower but reconstructs detail)
+        from cogs.masq.realesrgan import upscale_hd
 
-    if not result.success:
-        print_error(f"Failed: {result.error}")
-        return 1
+        model = "anime" if args.anime else "default"
+        print_status(f"De mode: {C.GOLD}HD{C.RESET} (Real-ESRGAN {model})")
+        print_info("Dis gonna take a minute, cher... Real magic takes time.")
 
-    # Save output
-    output_path = args.output or f"upscaled_{args.scale}x_{input_path.stem}.png"
-    Path(output_path).write_bytes(result.image_bytes)
+        result = await upscale_hd(
+            image_bytes,
+            scale=args.scale,
+            model=model,
+            tile=args.tile
+        )
 
-    print_success("Boom! Bigger dan life, cher!")
-    print_result_box("MAGNIFIQUE", [
-        ("Original", f"{result.original_size[0]}x{result.original_size[1]}"),
-        ("Upscaled", f"{result.upscaled_size[0]}x{result.upscaled_size[1]}"),
-        ("Scale", f"{result.scale_factor}x"),
-        ("Alpha", "Preserved" if result.has_alpha else "Non"),
-        ("Time", f"{result.processing_time_ms:.0f}ms"),
-        ("Output", str(output_path))
-    ])
+        if not result.success:
+            print_error(f"Failed: {result.error}")
+            return 1
+
+        # Save output
+        output_path = args.output or f"upscaled_hd_{args.scale}x_{input_path.stem}.png"
+        Path(output_path).write_bytes(result.image_bytes)
+
+        print_success("Boom! Dat's de real magic, cher!")
+        print_result_box("MAGNIFIQUE HD", [
+            ("Original", f"{result.original_size[0]}x{result.original_size[1]}"),
+            ("Upscaled", f"{result.upscaled_size[0]}x{result.upscaled_size[1]}"),
+            ("Scale", f"{result.scale_factor}x"),
+            ("Model", result.model_used),
+            ("Alpha", "Preserved" if result.has_alpha else "Non"),
+            ("Time", f"{result.processing_time_ms/1000:.1f}s"),
+            ("Output", str(output_path))
+        ])
+    else:
+        # Standard Mode - Lanczos (fast)
+        masq = Masq()
+        print_info("Chargin' up...")
+
+        result = await masq.upscale(
+            image_bytes,
+            scale=args.scale,
+            preserve_alpha=not args.no_alpha
+        )
+
+        if not result.success:
+            print_error(f"Failed: {result.error}")
+            return 1
+
+        # Save output
+        output_path = args.output or f"upscaled_{args.scale}x_{input_path.stem}.png"
+        Path(output_path).write_bytes(result.image_bytes)
+
+        print_success("Boom! Bigger dan life, cher!")
+        print_result_box("MAGNIFIQUE", [
+            ("Original", f"{result.original_size[0]}x{result.original_size[1]}"),
+            ("Upscaled", f"{result.upscaled_size[0]}x{result.upscaled_size[1]}"),
+            ("Scale", f"{result.scale_factor}x"),
+            ("Alpha", "Preserved" if result.has_alpha else "Non"),
+            ("Time", f"{result.processing_time_ms:.0f}ms"),
+            ("Output", str(output_path))
+        ])
 
     return 0
 
@@ -317,7 +353,9 @@ def main():
 Examples:
   masq bg photo.png                    # Masquerade (all masks)
   masq bg photo.png -m runware_rmbg2   # Single mask
-  masq upscale logo.png --scale 4      # Upscale 4x
+  masq upscale logo.png --scale 4      # Upscale 4x (fast, Lanczos)
+  masq upscale logo.png --hd           # Upscale HD (Real-ESRGAN, slower)
+  masq upscale logo.png --hd --anime   # HD with anime model (for artwork)
   masq models                          # List available masks
 
 Environment:
@@ -338,11 +376,15 @@ Environment:
     bg_parser.add_argument("--models", help="Comma-separated list of masks")
 
     # upscale command
-    up_parser = subparsers.add_parser("upscale", help="Upscale image with Lanczos")
+    up_parser = subparsers.add_parser("upscale", help="Upscale image")
     up_parser.add_argument("input", help="Input image file")
     up_parser.add_argument("-o", "--output", help="Output file")
     up_parser.add_argument("-s", "--scale", type=int, default=4, help="Scale factor (default: 4)")
     up_parser.add_argument("--no-alpha", action="store_true", help="Don't preserve transparency")
+    # HD mode options
+    up_parser.add_argument("--hd", action="store_true", help="HD mode (Real-ESRGAN, slower but better quality)")
+    up_parser.add_argument("--anime", action="store_true", help="Use anime model (for illustrations/logos)")
+    up_parser.add_argument("--tile", type=int, default=256, help="Tile size for HD mode (lower = less VRAM)")
 
     # models command
     subparsers.add_parser("models", help="List available masks")
