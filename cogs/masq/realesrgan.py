@@ -29,6 +29,9 @@ MODELS_DIRS = [
     Path(__file__).parent.parent.parent / "test" / "models",
 ]
 
+# Singleton upscaler instances (avoid reloading model each request)
+_upscaler_cache: dict = {}
+
 
 @dataclass
 class HDUpscaleResult:
@@ -202,13 +205,16 @@ async def upscale_hd(
             else "RealESRGAN_x4plus"
         )
 
-        # Create upscaler
-        upscaler = RealESRGANUpscaler(
-            model_name=model_name,
-            tile=tile,
-            gpu_id=None,  # CPU for now
-            use_half=False
-        )
+        # Get or create cached upscaler (singleton per model/tile combo)
+        cache_key = f"{model_name}_{tile}"
+        if cache_key not in _upscaler_cache:
+            _upscaler_cache[cache_key] = RealESRGANUpscaler(
+                model_name=model_name,
+                tile=tile,
+                gpu_id=None,  # CPU for now
+                use_half=False
+            )
+        upscaler = _upscaler_cache[cache_key]
 
         # Upscale
         result_img = await upscaler.upscale(img, scale)

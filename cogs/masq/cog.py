@@ -1,10 +1,10 @@
 """
 Masq Discord Cog
-Background removal (shotgun) + Lanczos upscaling for Tricon Lab.
+Background removal (shotgun) + upscaling for Tricon Lab.
 
 Commands:
-    /bg <image> [model]      - Remove background (shotgun or single model)
-    /upscale <image> [scale] - Upscale image (Lanczos, preserves alpha)
+    /bg <image> [model]              - Remove background (shotgun or single model)
+    /upscale <image> [scale] [mode]  - Upscale image (fast=Lanczos, premium=Real-ESRGAN)
 """
 
 import asyncio
@@ -281,8 +281,6 @@ class MasqCog(commands.Cog):
 
                 # Check input dimensions - warn for large images (CPU is slow)
                 img_check = Image.open(io.BytesIO(image_bytes))
-                max_dim = max(img_check.size)
-                pixels = img_check.size[0] * img_check.size[1]
 
                 # Estimate time: ~10s per 256x256 tile on CPU
                 est_tiles = (img_check.size[0] // 256 + 1) * (img_check.size[1] // 256 + 1)
