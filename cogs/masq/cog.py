@@ -231,14 +231,13 @@ class MasqCog(commands.Cog):
     @app_commands.command(name="upscale", description="Upscale an image (preserves transparency)")
     @app_commands.describe(
         image="Image to upscale (PNG, JPG, WebP)",
-        scale="Scale factor (2x, 4x, 8x). Default: 4x",
+        scale="Scale factor (2x or 4x). Default: 4x",
         mode="fast (instant) or premium (AI, 1-2 min but better quality)"
     )
     @app_commands.choices(
         scale=[
             app_commands.Choice(name="2x", value=2),
             app_commands.Choice(name="4x (Default)", value=4),
-            app_commands.Choice(name="8x", value=8),
         ],
         mode=[
             app_commands.Choice(name="fast (instant)", value="fast"),
@@ -278,11 +277,23 @@ class MasqCog(commands.Cog):
             if mode == "premium":
                 # Premium mode - Real-ESRGAN (slower but reconstructs detail)
                 from .realesrgan import upscale_hd
+                from PIL import Image
 
-                # Send a heads-up message
+                # Check input dimensions - warn for large images (CPU is slow)
+                img_check = Image.open(io.BytesIO(image_bytes))
+                max_dim = max(img_check.size)
+                pixels = img_check.size[0] * img_check.size[1]
+
+                # Estimate time: ~10s per 256x256 tile on CPU
+                est_tiles = (img_check.size[0] // 256 + 1) * (img_check.size[1] // 256 + 1)
+                est_minutes = (est_tiles * 10) / 60
+
+                # Send a heads-up message with time estimate
+                time_msg = f"~{est_minutes:.0f} min" if est_minutes >= 1 else "~1 min"
                 await interaction.followup.send(
-                    "🎨 **Premium upscale started** - This uses AI to reconstruct detail "
-                    "and may take 1-2 minutes. Please wait...",
+                    f"🎨 **Premium upscale started** ({img_check.size[0]}x{img_check.size[1]} → "
+                    f"{img_check.size[0]*scale}x{img_check.size[1]*scale})\n"
+                    f"Estimated time: **{time_msg}** on CPU. Please wait...",
                     ephemeral=False
                 )
 
@@ -306,7 +317,7 @@ class MasqCog(commands.Cog):
 
                 file = discord.File(
                     io.BytesIO(result.image_bytes),
-                    filename=f"upscaled_premium_{scale}x.png"
+                    filename=f"upscaled_premium_{scale}x.webp"
                 )
 
                 embed = discord.Embed(
@@ -364,7 +375,7 @@ class MasqCog(commands.Cog):
 
                 file = discord.File(
                     io.BytesIO(result.image_bytes),
-                    filename=f"upscaled_{scale}x.png"
+                    filename=f"upscaled_{scale}x.webp"
                 )
 
                 embed = discord.Embed(

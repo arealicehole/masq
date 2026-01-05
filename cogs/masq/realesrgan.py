@@ -136,6 +136,7 @@ class RealESRGANUpscaler:
         Returns:
             Upscaled PIL Image with alpha preserved if input had alpha
         """
+        import asyncio
         import cv2
 
         upsampler = self._get_upsampler()
@@ -149,8 +150,11 @@ class RealESRGANUpscaler:
             img_array = np.array(image.convert("RGB"))
             img_input = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-        # Upscale
-        output, _ = upsampler.enhance(img_input, outscale=scale)
+        # Run heavy CPU work in thread pool to avoid blocking event loop
+        def _do_enhance():
+            return upsampler.enhance(img_input, outscale=scale)
+
+        output, _ = await asyncio.to_thread(_do_enhance)
 
         # Convert back to PIL
         if output.shape[2] == 4:
@@ -209,9 +213,9 @@ async def upscale_hd(
         # Upscale
         result_img = await upscaler.upscale(img, scale)
 
-        # Convert to bytes
+        # Convert to bytes (WebP for smaller file size with alpha support)
         output_buffer = io.BytesIO()
-        result_img.save(output_buffer, format="PNG")
+        result_img.save(output_buffer, format="WEBP", quality=95, lossless=False)
         result_bytes = output_buffer.getvalue()
 
         elapsed = (time.perf_counter() - start) * 1000

@@ -526,7 +526,7 @@ class Masq:
                     result = img.resize(new_size, Image.Resampling.LANCZOS)
 
             buf = io.BytesIO()
-            result.save(buf, format="PNG", optimize=True)
+            result.save(buf, format="WEBP", quality=95, lossless=False)
             return buf.getvalue(), orig_size, new_size, has_alpha
 
         try:
