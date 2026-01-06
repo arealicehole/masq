@@ -141,27 +141,49 @@ MODELS = {
         "priority": 3
     },
     # Local models (FREE)
+    # Note: BiRefNet requires 6-12GB RAM - not suitable for constrained deployments
     "local_birefnet": {
         "name": "BiRefNet General",
         "provider": "local",
         "model_id": "birefnet-general",
         "cost": 0.0,
-        "priority": 4
+        "priority": 6,
+        "notes": "Heavy model - requires 6-12GB RAM"
+    },
+    "local_silueta": {
+        "name": "Silueta",
+        "provider": "local",
+        "model_id": "silueta",
+        "cost": 0.0,
+        "priority": 4,
+        "notes": "Lightweight (43MB, 1-2GB RAM) - fast"
     },
     "local_isnet": {
         "name": "ISNet",
         "provider": "local",
         "model_id": "isnet-general-use",
         "cost": 0.0,
-        "priority": 5
+        "priority": 5,
+        "notes": "Medium weight (170MB, 4-6GB RAM)"
     }
 }
 
+# Default shotgun uses lightweight local models only (BiRefNet needs 6-12GB RAM)
 DEFAULT_SHOTGUN_MODELS = [
     "runware_rmbg2",
     "runware_birefnet_portrait",
     "kie_recraft",
+    "local_silueta",
+    "local_isnet"
+]
+
+# Full shotgun including heavy models (for high-memory environments)
+FULL_SHOTGUN_MODELS = [
+    "runware_rmbg2",
+    "runware_birefnet_portrait",
+    "kie_recraft",
     "local_birefnet",
+    "local_silueta",
     "local_isnet"
 ]
 
