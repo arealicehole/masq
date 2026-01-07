@@ -38,3 +38,6 @@ IMPLEMENTATION_PLAN.md
 
 # Serena
 .serena/
+
+deploy/
+test/
