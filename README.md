@@ -12,7 +12,7 @@
          background removal  ·  upscaling  ·  transparency
 ```
 
-A portable image processing engine with CLI for self-hosting and a Discord Cog for server integration. Background removal via 5-model shotgun + Lanczos upscaling that preserves alpha.
+A portable image processing engine with CLI for self-hosting and a Discord Cog for server integration. Background removal via 5-model shotgun + upscaling (fast Lanczos or Real-ESRGAN HD). Preserves alpha for DTF printing. Output in WebP.
 
 Built by **[Tricon Digital](https://tricondigital.com)**.
 
@@ -64,6 +64,33 @@ Background removal fires 5 models in parallel:
 
 ---
 
+## Upscaling
+
+Two modes for different needs:
+
+| Mode | Method | Speed | Quality | Use Case |
+|------|--------|-------|---------|----------|
+| **Fast** | Lanczos resampling | Instant | Good | Quick previews, clean source images |
+| **Premium** | Real-ESRGAN AI | ~1-2 min | Excellent | Low-res images, detail reconstruction |
+
+### Real-ESRGAN (Premium Mode)
+
+AI-powered upscaling that reconstructs detail instead of just interpolating pixels. Uses deep learning models:
+
+- **RealESRGAN_x4plus** — General purpose (photos, graphics)
+- **RealESRGAN_x4plus_anime_6B** — Optimized for illustrations/anime
+
+Best for: old photos, compressed images, low-res source material.
+
+### Output Format
+
+All output is **WebP** format:
+- Smaller file sizes than PNG
+- Full alpha/transparency support (critical for DTF printing)
+- Quality: 95 (near-lossless)
+
+---
+
 ## Quick Start
 
 ### 1. Get Your API Keys
@@ -98,11 +125,17 @@ python masq_cli.py bg photo.png
 # Background removal - single model
 python masq_cli.py bg photo.png --model runware_rmbg2
 
-# Upscale 4x (preserves transparency)
+# Upscale 4x (fast Lanczos, preserves transparency)
 python masq_cli.py upscale logo.png
 
-# Upscale 8x
-python masq_cli.py upscale logo.png --scale 8
+# Upscale 2x
+python masq_cli.py upscale logo.png --scale 2
+
+# Upscale with Real-ESRGAN (HD mode - better quality, slower)
+python masq_cli.py upscale logo.png --hd
+
+# Upscale with Real-ESRGAN anime model (for illustrations)
+python masq_cli.py upscale logo.png --hd --anime
 
 # List available models
 python masq_cli.py models
@@ -150,8 +183,11 @@ python bot.py
 |---------|-------------|
 | `/bg <image>` | Remove background (shotgun - returns all results) |
 | `/bg <image> model:<model>` | Remove background with specific model |
-| `/upscale <image>` | Upscale 4x with Lanczos |
-| `/upscale <image> scale:8` | Upscale 8x |
+| `/upscale <image>` | Upscale 4x fast (Lanczos) |
+| `/upscale <image> scale:2` | Upscale 2x |
+| `/upscale <image> mode:premium` | Upscale 4x with Real-ESRGAN (HD quality, slower) |
+
+**Output format:** WebP (smaller files, supports transparency). Discord limit is 25MB.
 
 ### Model Selection
 
