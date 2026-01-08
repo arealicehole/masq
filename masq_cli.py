@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Masq CLI
 Background removal & upscaling from your terminal.
@@ -39,17 +39,17 @@ from cogs.masq import Masq, MODELS, DEFAULT_SHOTGUN_MODELS
 # ==================== Masquerade Aesthetic ====================
 
 BANNER = r"""
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║                                                               ║
-    ║         ███╗   ███╗  █████╗  ███████╗  ██████╗                ║
-    ║         ████╗ ████║ ██╔══██╗ ██╔════╝ ██╔═══██╗               ║
-    ║  ⚜ ◆   ██╔████╔██║ ███████║ ███████╗ ██║   ██║   ◆ ⚜        ║
-    ║         ██║╚██╔╝██║ ██╔══██║ ╚════██║ ██║▄▄ ██║               ║
-    ║         ██║ ╚═╝ ██║ ██║  ██║ ███████║ ╚██████╔╝               ║
-    ║         ╚═╝     ╚═╝ ╚═╝  ╚═╝ ╚══════╝  ╚══▀▀═╝                ║
-    ║                                                               ║
-    ║        ══════ Rue Royale, 1889 · Le Bal des Ombres ══════     ║
-    ╚═══════════════════════════════════════════════════════════════╝
+    â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+    â•‘                                                               â•‘
+    â•‘         â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—                â•‘
+    â•‘         â–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•— â–ˆâ–ˆâ•”â•â•â•â•â• â–ˆâ–ˆâ•”â•â•â•â–ˆâ–ˆâ•—               â•‘
+    â•‘  âšœ â—†   â–ˆâ–ˆâ•”â–ˆâ–ˆâ–ˆâ–ˆâ•”â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘ â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘   â—† âšœ        â•‘
+    â•‘         â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•‘ â•šâ•â•â•â•â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•‘â–„â–„ â–ˆâ–ˆâ•‘               â•‘
+    â•‘         â–ˆâ–ˆâ•‘ â•šâ•â• â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘ â•šâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•               â•‘
+    â•‘         â•šâ•â•     â•šâ•â• â•šâ•â•  â•šâ•â• â•šâ•â•â•â•â•â•â•  â•šâ•â•â–€â–€â•â•                â•‘
+    â•‘                                                               â•‘
+    â•‘        â•â•â•â•â•â• Rue Royale, 1889 Â· Le Bal des Ombres â•â•â•â•â•â•     â•‘
+    â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 """
 
 # ANSI Colors - Mardi Gras palette
@@ -67,80 +67,80 @@ def print_banner():
     print(f"{C.PURPLE}{BANNER}{C.RESET}")
 
 
-def print_status(msg: str, symbol: str = "│"):
+def print_status(msg: str, symbol: str = "â”‚"):
     print(f"  {C.DIM}{symbol}{C.RESET} {msg}")
 
 
 def print_success(msg: str):
-    print(f"  {C.GOLD}◆{C.RESET} {msg}")
+    print(f"  {C.GOLD}â—†{C.RESET} {msg}")
 
 
 def print_error(msg: str):
-    print(f"  {C.PURPLE}✗{C.RESET} {msg}")
+    print(f"  {C.PURPLE}âœ—{C.RESET} {msg}")
 
 
 def print_info(msg: str):
-    print(f"  {C.PURPLE}⚜{C.RESET} {msg}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {msg}")
 
 
 def print_header(msg: str):
     print(f"\n  {C.BOLD}{C.GOLD}{msg}{C.RESET}")
-    print(f"  {C.DIM}{'═' * len(msg)}{C.RESET}")
+    print(f"  {C.DIM}{'â•' * len(msg)}{C.RESET}")
 
 
 def print_result_box(title: str, items: list[tuple[str, str]]):
     """Print a styled result box."""
     width = max(len(title), max(len(k) + len(v) + 2 for k, v in items)) + 4
-    print(f"\n  {C.PURPLE}╔{'═' * width}╗{C.RESET}")
-    print(f"  {C.PURPLE}║{C.RESET} {C.BOLD}{C.GOLD}{title}{' ' * (width - len(title) - 1)}{C.PURPLE}║{C.RESET}")
-    print(f"  {C.PURPLE}╠{'═' * width}╣{C.RESET}")
+    print(f"\n  {C.PURPLE}â•”{'â•' * width}â•—{C.RESET}")
+    print(f"  {C.PURPLE}â•‘{C.RESET} {C.BOLD}{C.GOLD}{title}{' ' * (width - len(title) - 1)}{C.PURPLE}â•‘{C.RESET}")
+    print(f"  {C.PURPLE}â• {'â•' * width}â•£{C.RESET}")
     for key, value in items:
         line = f"{key}: {value}"
         padding = width - len(line) - 1
-        print(f"  {C.PURPLE}║{C.RESET} {C.DIM}{key}:{C.RESET} {C.GOLD}{value}{' ' * padding}{C.PURPLE}║{C.RESET}")
-    print(f"  {C.PURPLE}╚{'═' * width}╝{C.RESET}")
+        print(f"  {C.PURPLE}â•‘{C.RESET} {C.DIM}{key}:{C.RESET} {C.GOLD}{value}{' ' * padding}{C.PURPLE}â•‘{C.RESET}")
+    print(f"  {C.PURPLE}â•š{'â•' * width}â•{C.RESET}")
 
 
 # ==================== Scene Intros ====================
 
 def scene_bg_solo():
     """Scene: Private game in the back room."""
-    print(f"\n  {C.DIM}─────────────────────────────────────────────────────{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}De ballroom buzzes wit' masks an' secrets...{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}A stranger in velvet catches your eye.{C.RESET}")
-    print(f"  {C.GOLD}◆{C.RESET} {C.BOLD}\"Jus' you an' me tonight, mon ami. One card.{C.RESET}")
+    print(f"\n  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}De ballroom buzzes wit' masks an' secrets...{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}A stranger in velvet catches your eye.{C.RESET}")
+    print(f"  {C.GOLD}â—†{C.RESET} {C.BOLD}\"Jus' you an' me tonight, mon ami. One card.{C.RESET}")
     print(f"    {C.BOLD}Let's see what fate has in store...\"{C.RESET}")
-    print(f"  {C.DIM}─────────────────────────────────────────────────────{C.RESET}\n")
+    print(f"  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}\n")
 
 
 def scene_bg_grand():
     """Scene: The high-stakes game in the back room."""
-    print(f"\n  {C.DIM}─────────────────────────────────────────────────────{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}Chandeliers flicker. De music stops.{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}Someone whispers: \"Dey startin' Le Grand Jeu...\"{C.RESET}")
-    print(f"  {C.GOLD}◆{C.RESET} {C.BOLD}\"Gather 'round, chers. Every player at de table.{C.RESET}")
+    print(f"\n  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}Chandeliers flicker. De music stops.{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}Someone whispers: \"Dey startin' Le Grand Jeu...\"{C.RESET}")
+    print(f"  {C.GOLD}â—†{C.RESET} {C.BOLD}\"Gather 'round, chers. Every player at de table.{C.RESET}")
     print(f"    {C.BOLD}Tonight, we see who's got de magic touch...\"{C.RESET}")
-    print(f"  {C.DIM}─────────────────────────────────────────────────────{C.RESET}\n")
+    print(f"  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}\n")
 
 
 def scene_upscale():
     """Scene: Gambit charges up."""
-    print(f"\n  {C.DIM}─────────────────────────────────────────────────────{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}De crowd parts. A card appears between gloved fingers.{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}It begins to glow... purple, den gold...{C.RESET}")
-    print(f"  {C.GOLD}◆{C.RESET} {C.BOLD}\"You want it bigger, non? Watch dis, cher.{C.RESET}")
+    print(f"\n  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}De crowd parts. A card appears between gloved fingers.{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}It begins to glow... purple, den gold...{C.RESET}")
+    print(f"  {C.GOLD}â—†{C.RESET} {C.BOLD}\"You want it bigger, non? Watch dis, cher.{C.RESET}")
     print(f"    {C.BOLD}Remy make t'ings... magnifique.\"{C.RESET}")
-    print(f"  {C.DIM}─────────────────────────────────────────────────────{C.RESET}\n")
+    print(f"  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}\n")
 
 
 def scene_models():
     """Scene: Surveying the guests."""
-    print(f"\n  {C.DIM}─────────────────────────────────────────────────────{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}You step t'rough de iron gates onto Rue Royale.{C.RESET}")
-    print(f"  {C.PURPLE}⚜{C.RESET} {C.DIM}Masks everywhere. Silk. Secrets. Danger.{C.RESET}")
-    print(f"  {C.GOLD}◆{C.RESET} {C.BOLD}\"Lemme show you who's at de ball tonight, mon ami.{C.RESET}")
+    print(f"\n  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}You step t'rough de iron gates onto Rue Royale.{C.RESET}")
+    print(f"  {C.PURPLE}âšœ{C.RESET} {C.DIM}Masks everywhere. Silk. Secrets. Danger.{C.RESET}")
+    print(f"  {C.GOLD}â—†{C.RESET} {C.BOLD}\"Lemme show you who's at de ball tonight, mon ami.{C.RESET}")
     print(f"    {C.BOLD}Some got power... some got style... some got bot'.\"{C.RESET}")
-    print(f"  {C.DIM}─────────────────────────────────────────────────────{C.RESET}\n")
+    print(f"  {C.DIM}â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€{C.RESET}\n")
 
 
 # ==================== Commands ====================
@@ -180,11 +180,11 @@ async def cmd_bg(args):
             Path(output_path).write_bytes(result.image_bytes)
 
             print_success("Dat's a winnin' hand!")
-            print_result_box("RÉVÉLÉ", [
+            print_result_box("RÃ‰VÃ‰LÃ‰", [
                 ("Model", result.model_name),
                 ("Time", f"{result.processing_time_ms:.0f}ms"),
                 ("Cost", f"${result.cost:.4f}"),
-                ("Output", str(output_path))
+                ("Output", f"file:///{Path(output_path).absolute().as_posix()}")
             ])
 
         else:
@@ -207,28 +207,28 @@ async def cmd_bg(args):
                 print_error("De house wins dis round, cher...")
                 for r in result.results:
                     if r.error:
-                        print_status(f"{r.model_name}: {r.error}", "✗")
+                        print_status(f"{r.model_name}: {r.error}", "âœ—")
                 return 1
 
             # Save all successful outputs
             output_dir = Path(args.output_dir or f"bg_{input_path.stem}_{datetime.now().strftime('%H%M%S')}")
             output_dir.mkdir(exist_ok=True)
 
-            print_success(f"Voilà! {len(result.successful)}/{len(result.results)} came t'rough")
+            print_success(f"VoilÃ ! {len(result.successful)}/{len(result.results)} came t'rough")
             print()
 
             for i, r in enumerate(result.successful):
                 out_file = output_dir / f"{i+1}_{r.model_id}.png"
                 out_file.write_bytes(r.image_bytes)
-                status = f"{C.GOLD}◆{C.RESET}" if r.is_success else f"{C.PURPLE}✗{C.RESET}"
+                status = f"{C.GOLD}â—†{C.RESET}" if r.is_success else f"{C.PURPLE}âœ—{C.RESET}"
                 print(f"  {status} {C.BOLD}{i+1}. {r.model_name}{C.RESET}")
-                print(f"      {C.DIM}{r.provider} · {r.processing_time_ms:.0f}ms · ${r.cost:.4f}{C.RESET}")
-                print(f"      {C.PURPLE}⚜{C.RESET} {out_file}")
+                print(f"      {C.DIM}{r.provider} Â· {r.processing_time_ms:.0f}ms Â· ${r.cost:.4f}{C.RESET}")
+                print(f"      {C.PURPLE}âšœ{C.RESET} {out_file}")
 
             print_result_box("LE BAL", [
                 ("Total Time", f"{result.total_time_ms:.0f}ms"),
                 ("Total Cost", f"${result.total_cost:.4f}"),
-                ("Output Dir", str(output_dir))
+                ("Output Dir", f"file:///{Path(output_dir).absolute().as_posix()}")
             ])
 
     finally:
@@ -282,7 +282,7 @@ async def cmd_upscale(args):
             ("Model", result.model_used),
             ("Alpha", "Preserved" if result.has_alpha else "Non"),
             ("Time", f"{result.processing_time_ms/1000:.1f}s"),
-            ("Output", str(output_path))
+            ("Output", f"file:///{Path(output_path).absolute().as_posix()}")
         ])
     else:
         # Standard Mode - Lanczos (fast)
@@ -310,7 +310,7 @@ async def cmd_upscale(args):
             ("Scale", f"{result.scale_factor}x"),
             ("Alpha", "Preserved" if result.has_alpha else "Non"),
             ("Time", f"{result.processing_time_ms:.0f}ms"),
-            ("Output", str(output_path))
+            ("Output", f"file:///{Path(output_path).absolute().as_posix()}")
         ])
 
     return 0
@@ -327,10 +327,10 @@ async def cmd_models(args):
     print_header("LES JOUEURS")
 
     for m in masq.get_available_models():
-        status = f"{C.GOLD}◆{C.RESET}" if m["available"] else f"{C.DIM}○{C.RESET}"
+        status = f"{C.GOLD}â—†{C.RESET}" if m["available"] else f"{C.DIM}â—‹{C.RESET}"
         cost = f"${m['cost']:.4f}" if m["cost"] > 0 else f"{C.GREEN}GRATIS{C.RESET}"
         print(f"  {status} {C.BOLD}{m['id']}{C.RESET}")
-        print(f"      {m['name']} ({m['provider']}) · {cost}")
+        print(f"      {m['name']} ({m['provider']}) Â· {cost}")
         if m.get("notes"):
             print(f"      {C.DIM}{m['notes']}{C.RESET}")
 
