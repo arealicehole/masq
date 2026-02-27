@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from config import get_settings, get_model_config
 from services.upscaler import get_upscaler_service
+from services.upscaler_hd import get_hd_upscaler_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -22,6 +23,13 @@ class UpscaleRequest(BaseModel):
     image_base64: str
     scale: Optional[int] = 4
     preserve_alpha: Optional[bool] = True
+
+
+class HDPremiumRequest(BaseModel):
+    """Request model for HD upscaling via JSON."""
+    image_base64: str
+    scale: Optional[int] = 4
+    model: Optional[str] = "default"  # "default" or "anime"
 
 
 @router.get("/info")
@@ -35,12 +43,13 @@ async def upscaler_info() -> dict:
     upscaling_models = model_config.upscaling_models
 
     return {
-        "method": "lanczos",
-        "description": "High-quality Lanczos resampling with alpha preservation",
+        "methods": {
+            "lanczos": "Fast resampling with alpha preservation",
+            "real-esrgan": "HD AI reconstruction (Premium)"
+        },
         "default_scale": 4,
         "max_scale": 8,
         "supported_formats": ["PNG", "JPEG", "WebP", "GIF"],
-        "preserves_alpha": True,
         "cost": 0.0,
         "models": upscaling_models
     }
@@ -53,15 +62,7 @@ async def upscale_image(
     preserve_alpha: bool = Form(True)
 ) -> dict:
     """
-    Upscale an image using Lanczos resampling.
-
-    Args:
-        image: Image file to upscale (PNG, JPEG, WebP)
-        scale: Scale factor (1-8). Default: 4
-        preserve_alpha: Whether to preserve transparency. Default: True
-
-    Returns:
-        Upscaled image with metadata.
+    Upscale an image using Lanczos resampling (Fast).
     """
     settings = get_settings()
 
@@ -80,27 +81,81 @@ async def upscale_image(
             detail=f"File too large. Maximum size: {settings.max_upload_size / 1024 / 1024:.0f}MB"
         )
 
-    # Validate content type
-    content_type = image.content_type or ""
-    if not content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid content type: {content_type}. Expected image/*"
-        )
-
     # Execute upscaling
-    logger.info(
-        f"Upscaling image: {image.filename}, "
-        f"size: {len(content)} bytes, scale: {scale}x"
-    )
+    logger.info(f"Upscaling (Fast): {image.filename}, scale: {scale}x")
 
     upscaler = get_upscaler_service()
     result = await upscaler.upscale(content, scale, preserve_alpha)
 
     if not result.success:
+        raise HTTPException(status_code=500, detail=f"Upscaling failed: {result.error}")
+
+    return result.to_dict()
+
+
+@router.post("/premium")
+async def upscale_premium(
+    image: UploadFile = File(...),
+    scale: int = Form(4),
+    model: str = Form("default")
+) -> dict:
+    """
+    Upscale an image using Real-ESRGAN AI (Premium).
+    """
+    settings = get_settings()
+
+    # Validate scale
+    if scale < 1 or scale > 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Scale must be between 1 and 8"
+        )
+
+    # Validate file size
+    content = await image.read()
+    if len(content) > settings.max_upload_size:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size: {settings.max_upload_size / 1024 / 1024:.0f}MB"
+        )
+
+    # Execute upscaling
+    logger.info(f"Upscaling (Premium): {image.filename}, scale: {scale}x, model: {model}")
+
+    upscaler = get_hd_upscaler_service()
+    result = await upscaler.upscale(content, scale, model)
+
+    if not result.success:
+        raise HTTPException(status_code=500, detail=f"Premium upscaling failed: {result.error}")
+
+    return result.to_dict()
+
+
+@router.post("/premium/base64")
+async def upscale_premium_base64(request: HDPremiumRequest) -> dict:
+    """
+    Upscale an image from base64 using Real-ESRGAN AI (Premium).
+    """
+    # Validate scale
+    scale = request.scale or 4
+    if scale < 1 or scale > 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Scale must be between 1 and 8"
+        )
+
+    # Execute upscaling
+    upscaler = get_hd_upscaler_service()
+    result = await upscaler.upscale_base64(
+        request.image_base64,
+        scale,
+        request.model or "default"
+    )
+
+    if not result.success:
         raise HTTPException(
             status_code=500,
-            detail=f"Upscaling failed: {result.error}"
+            detail=f"Premium upscaling failed: {result.error}"
         )
 
     return result.to_dict()

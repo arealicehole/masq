@@ -1,119 +1,57 @@
 # ============================================
-# Image Processing Service - Phase 2 (GPU)
-# For BEN-v2 local inference
-# Requires: RTX 3090/4090 (24GB VRAM)
+# Masq - Zero-Compilation GPU Image
 # ============================================
 
-# ============================================
-# STAGE 1: Builder
-# ============================================
-FROM nvidia/cuda:12.1-devel-ubuntu22.04 AS builder
+# Use official PyTorch image which has 90% of the weight already
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Python 3.12 and build dependencies
+# Install system dependencies for OpenCV and BasicSR
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    python3.12 \
-    python3.12-venv \
-    python3.12-dev \
-    python3-pip \
-    gcc \
-    g++ \
-    libjpeg-dev \
-    zlib1g-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    libmagic1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create virtual environment
-RUN python3.12 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Upgrade pip
-RUN pip install --no-cache-dir --upgrade pip
-
-# Install PyTorch with CUDA support
-RUN pip install --no-cache-dir \
-    torch==2.1.2+cu121 \
-    torchvision==0.16.2+cu121 \
-    --index-url https://download.pytorch.org/whl/cu121
-
-# Copy and install requirements
-COPY requirements-gpu.txt .
-RUN pip install --no-cache-dir -r requirements-gpu.txt
-
-# Pre-download models
-RUN python -c "from rembg import new_session; new_session('birefnet-general'); new_session('isnet-general-use')"
-
-# Download BEN-v2 model weights
-RUN pip install huggingface_hub && \
-    python -c "from huggingface_hub import hf_hub_download; hf_hub_download('PramaLLC/BEN2', 'BEN2_Base.pth', local_dir='/opt/models/ben2')"
-
-# ============================================
-# STAGE 2: Runtime
-# ============================================
-FROM nvidia/cuda:12.1-runtime-ubuntu22.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Python runtime and libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    python3.12 \
-    libjpeg62 \
-    zlib1g \
-    libpng16-16 \
-    libfreetype6 \
+    wget \
+    build-essential \
     libmagic1 \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Copy virtual environment
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy pre-downloaded models
-COPY --from=builder /root/.u2net /root/.u2net
-COPY --from=builder /opt/models /opt/models
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
-COPY --chown=appuser:appuser . /app
 
-# Create temp directory
-RUN mkdir -p /tmp/img-proc && chown appuser:appuser /tmp/img-proc
+# 1. Install heavy AI stuff individually (Fast because we have PyTorch already)
+RUN pip install --no-cache-dir opencv-python-headless numpy==1.26.4
+RUN pip install --no-cache-dir "git+https://github.com/xinntao/BasicSR.git"
+RUN pip install --no-cache-dir realesrgan --no-deps
 
-# Switch to non-root user
-USER appuser
+# 2. Install app dependencies
+COPY requirements-lean.txt .
+RUN pip install --no-cache-dir -r requirements-lean.txt
 
-# Environment variables
+# 3. Copy application code
+COPY . .
+
+# 4. Pre-download models (Small and fast)
+RUN mkdir -p /root/.u2net && \
+    python -c "from rembg import new_session; new_session('birefnet-general'); new_session('isnet-general-use')" && \
+    wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P /root/.u2net/ && \
+    wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth -P /root/.u2net/
+
+# Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     TEMP_DIR=/tmp/img-proc \
-    COMPUTE_BACKEND=gpu \
     USE_GPU=true \
-    BEN2_MODEL_PATH=/opt/models/ben2/BEN2_Base.pth \
-    NVIDIA_VISIBLE_DEVICES=all \
-    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    MODELS_CONFIG_PATH=config/models-lean.yaml
 
 # Expose port
 EXPOSE 8000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()"
 
 # Run FastAPI
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

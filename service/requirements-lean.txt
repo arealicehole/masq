@@ -1,0 +1,24 @@
+# Lean Requirements for Local GPU Deployment (No APIs)
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+httpx==0.26.0
+Pillow==10.2.0
+rembg>=2.0.55
+onnxruntime-gpu>=1.17.0
+timm==0.9.12
+einops==0.7.0
+huggingface_hub==0.20.3
+safetensors==0.4.1
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+PyYAML==6.0.1
+aiofiles==23.2.1
+python-magic==0.4.27
+structlog==24.1.0
+
+# HD Upscaling (Real-ESRGAN)
+realesrgan>=0.3.0
+basicsr>=1.4.2
+opencv-python-headless>=4.8.0

@@ -1,0 +1,55 @@
+# ============================================
+# Lean Model Configuration (No APIs)
+# ============================================
+
+background_removal:
+  local_birefnet:
+    name: "Local BiRefNet (BEN-v2)"
+    provider: local
+    model_id: "birefnet-general"
+    enabled: true
+    cost_per_image: 0.0
+    timeout: 30
+    priority: 1
+    notes: "Local GPU-accelerated background removal"
+
+  local_isnet:
+    name: "Local ISNet"
+    provider: local
+    model_id: "isnet-general-use"
+    enabled: true
+    cost_per_image: 0.0
+    timeout: 20
+    priority: 2
+    notes: "Lightweight fallback"
+
+upscaling:
+  lanczos:
+    name: "Lanczos 4x"
+    provider: local
+    enabled: true
+    default_scale: 4
+    max_scale: 8
+    preserve_alpha: true
+    cost_per_image: 0.0
+
+  real-esrgan:
+    name: "Real-ESRGAN HD"
+    provider: local
+    enabled: true
+    default_scale: 4
+    max_scale: 8
+    cost_per_image: 0.0
+
+providers:
+  local:
+    connection_type: local
+    model_cache_dir: "/root/.u2net"
+
+shotgun:
+  parallel: true
+  total_timeout: 90
+  allow_partial_results: true
+  min_successful: 1
+  default_models:
+    - local_birefnet

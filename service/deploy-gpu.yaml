@@ -10,11 +10,10 @@ version: "2.0"
 
 services:
   img-proc-gpu:
-    image: yourusername/img-proc-service-gpu:latest
+    image: arealicehole/masq-gpu:v1.0.0
     env:
-      # Required API Keys
-      - RUNWARE_API_KEY=your_runware_key_here
-      - KIE_API_KEY=your_kie_key_here
+      # Model configuration
+      - MODELS_CONFIG_PATH=config/models-lean.yaml
 
       # GPU Mode
       - COMPUTE_BACKEND=gpu
@@ -52,7 +51,7 @@ profiles:
         cpu:
           units: 4.0        # 4 vCPUs for GPU coordination
         memory:
-          size: 16Gi        # 16GB RAM for GPU transfers
+          size: 32Gi        # 32GB RAM for large image assembly
         gpu:
           units: 1
           attributes:
