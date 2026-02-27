@@ -25,7 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# 1. Install heavy AI stuff individually (Fast because we have PyTorch already)
+# 1. Install heavy AI stuff individually
+# We rely on the PyTorch version pre-installed in the base image
 RUN pip install --no-cache-dir opencv-python-headless numpy==1.26.4
 RUN pip install --no-cache-dir "git+https://github.com/xinntao/BasicSR.git"
 RUN pip install --no-cache-dir realesrgan --no-deps
@@ -37,7 +38,7 @@ RUN pip install --no-cache-dir -r requirements-lean.txt
 # 3. Copy application code
 COPY . .
 
-# 4. Pre-download models (Small and fast)
+# 4. Pre-download models
 RUN mkdir -p /root/.u2net && \
     python -c "from rembg import new_session; new_session('birefnet-general'); new_session('isnet-general-use')" && \
     wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P /root/.u2net/ && \
