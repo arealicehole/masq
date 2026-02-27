@@ -10,7 +10,7 @@ version: "2.0"
 
 services:
   img-proc-gpu:
-    image: arealicehole/masq-gpu:v1.0.0
+    image: ghcr.io/arealicehole/masq-gpu:v1.0.0
     env:
       # Model configuration
       - MODELS_CONFIG_PATH=config/models-lean.yaml
