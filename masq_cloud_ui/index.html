@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Masq Master — Cloud Batch Engine</title>
+  <meta name="description" content="Drag & drop batch image processor powered by dual-engine GPU. Background removal + AI upscaling." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ─── HEADER ─────────────────────────────────────────── -->
+  <header id="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon">🎭</span>
+        <h1>Masq <span class="brand-accent">Master</span></h1>
+      </div>
+      <p class="tagline">Dual-Engine Cloud Batch Processor &mdash; BEN-v2 &bull; Real-ESRGAN &bull; L40S GPU</p>
+    </div>
+  </header>
+
+  <!-- ─── MAIN LAYOUT ────────────────────────────────────── -->
+  <main id="app-main">
+
+    <!-- SETTINGS PANEL -->
+    <aside id="settings-panel" class="glass-card">
+      <h2>⚙️ Settings</h2>
+
+      <label for="endpoint-url">Modal Endpoint URL</label>
+      <input type="url" id="endpoint-url" placeholder="https://your-app--masq-master-web.modal.run" spellcheck="false" />
+
+      <label for="upscale-factor">Upscale Factor: <strong id="scale-label">4</strong>x</label>
+      <input type="range" id="upscale-factor" min="2" max="8" value="4" step="1" />
+
+      <div class="engine-badges">
+        <span class="badge badge-bg">BEN-v2</span>
+        <span class="badge badge-up">ESRGAN</span>
+      </div>
+
+      <div id="cost-estimate" class="cost-box">
+        <span>Est. Cost</span>
+        <strong id="cost-value">$0.00</strong>
+      </div>
+
+      <button id="btn-health" class="btn-secondary" title="Test connection">🔗 Test Connection</button>
+      <p id="health-status" class="health-msg"></p>
+    </aside>
+
+    <!-- WORKSPACE -->
+    <section id="workspace">
+
+      <!-- DROP ZONE -->
+      <div id="drop-zone" class="glass-card">
+        <div class="drop-inner">
+          <span class="drop-icon">📂</span>
+          <p>Drag &amp; drop images here</p>
+          <p class="drop-hint">or click to browse &bull; PNG, JPG, WebP</p>
+          <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.webp" multiple hidden />
+        </div>
+      </div>
+
+      <!-- QUEUE -->
+      <div id="queue-section" class="glass-card hidden">
+        <div class="queue-header">
+          <h2>📋 Processing Queue</h2>
+          <div class="queue-actions">
+            <button id="btn-clear" class="btn-ghost" title="Clear queue">🗑️ Clear</button>
+            <button id="btn-fire" class="btn-primary" title="Process queue">🚀 Fire Queue</button>
+          </div>
+        </div>
+        <div id="queue-list"></div>
+        <div id="progress-section" class="hidden">
+          <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
+          <p id="progress-text">Ready</p>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="results-section" class="glass-card hidden">
+        <div class="results-header">
+          <h2>✅ Results</h2>
+          <button id="btn-download-all" class="btn-secondary">⬇️ Download All</button>
+        </div>
+        <div id="results-grid"></div>
+        <p id="final-stats" class="stats-line"></p>
+      </div>
+
+    </section>
+  </main>
+
+  <footer id="app-footer">
+    <p>Masq Master &bull; Dual-Engine GPU Processing &bull; <a href="https://modal.com" target="_blank" rel="noopener">Powered by Modal</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
