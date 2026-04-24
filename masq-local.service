@@ -1,0 +1,14 @@
+[Unit]
+Description=Masq Local — Cold-start image processor
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/srv/apps/masq-local/venv/bin/python /srv/apps/masq-local/masq_local_server.py
+WorkingDirectory=/srv/apps/masq-local
+Environment=PATH=/srv/apps/masq-local/venv/bin:/usr/bin
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

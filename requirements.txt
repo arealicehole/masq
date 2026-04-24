@@ -1,0 +1,12 @@
+fastapi[standard]
+uvicorn[standard]
+torch
+torchvision
+rembg[gpu]
+onnxruntime-gpu
+pillow
+huggingface_hub
+realesrgan
+basicsr
+numpy
+opencv-python-headless
